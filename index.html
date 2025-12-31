@@ -29,64 +29,90 @@
       from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    h1 { text-align: center; font-size: 1.5rem; margin-bottom: 4px; }
+    h1 { text-align: center; font-size: 1.5rem; margin-bottom: 4px; color: #22c55e; }
     p.sub { text-align: center; color: #a1a1aa; font-size: .85rem; margin-bottom: 16px; }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 8px;
       margin-bottom: 14px;
     }
-    input, textarea {
+    input {
       width: 100%;
-      padding: 12px;
-      font-size: .95rem;
-      border-radius: 14px;
+      padding: 12px 5px;
+      font-size: 1rem;
+      border-radius: 10px;
       border: 1px solid #3f3f46;
       background: #27272a;
       color: #fff;
       text-align: center;
+      font-weight: bold;
     }
-    textarea {
-      text-align: left;
-      resize: none;
-      min-height: 90px;
-      font-size: .85rem;
-    }
-    input::placeholder, textarea::placeholder { color: #71717a; }
+    input:focus { border-color: #22c55e; outline: none; background: #323238; }
 
     button {
       width: 100%;
-      padding: 14px;
+      padding: 16px;
       border-radius: 16px;
       border: none;
       background: #22c55e;
       color: #052e16;
       font-size: 1rem;
-      font-weight: 600;
+      font-weight: 800;
       cursor: pointer;
       margin-top: 10px;
+      text-transform: uppercase;
+      transition: transform 0.2s;
     }
+    button:active { transform: scale(0.98); }
 
     .resultado {
-      margin-top: 16px;
-      font-size: .85rem;
-      animation: fade .4s ease;
+      margin-top: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 5px;
     }
-    @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+    /* Scrollbar estilizada */
+    .resultado::-webkit-scrollbar { width: 4px; }
+    .resultado::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
 
     .jogo {
       background: #18181b;
       border: 1px solid #27272a;
       border-radius: 14px;
-      padding: 10px;
-      margin-bottom: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      font-size: 0.85rem;
+      line-height: 1.4;
     }
-    .acertos { font-weight: 600; }
-    .sena { color: #22c55e; }
-    .quina { color: #60a5fa; }
-    .quadra { color: #facc15; }
+    .acerto-num { color: #22c55e; font-weight: bold; text-decoration: underline; }
+    .resumo-vitoria {
+        text-align: center;
+        background: #052e16;
+        color: #22c55e;
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        font-weight: bold;
+        display: none;
+    }
+
+    .sena { border: 2px solid #22c55e; background: #052e16; }
+    .quina { border: 2px solid #3b82f6; }
+    .quadra { border: 2px solid #eab308; }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        margin-left: 5px;
+    }
+    .badge-sena { background: #22c55e; color: #fff; }
+    .badge-quina { background: #3b82f6; color: #fff; }
+    .badge-quadra { background: #eab308; color: #000; }
 
     footer {
       text-align: center;
@@ -99,160 +125,128 @@
 <body>
   <div class="card">
     <h1>Mega da Virada</h1>
-    <p class="sub">Cole suas apostas do PDF e confira tudo</p>
+    <p class="sub">Digite as 6 dezenas sorteadas</p>
 
     <div class="grid" id="sorteio">
-      <input maxlength="2" placeholder="--" inputmode="numeric">
-      <input maxlength="2" placeholder="--" inputmode="numeric">
-      <input maxlength="2" placeholder="--" inputmode="numeric">
-      <input maxlength="2" placeholder="--" inputmode="numeric">
-      <input maxlength="2" placeholder="--" inputmode="numeric">
-      <input maxlength="2" placeholder="--" inputmode="numeric">
+      <input type="number" pattern="\d*" maxlength="2" placeholder="00" oninput="pular(this, 0)">
+      <input type="number" pattern="\d*" maxlength="2" placeholder="00" oninput="pular(this, 1)">
+      <input type="number" pattern="\d*" maxlength="2" placeholder="00" oninput="pular(this, 2)">
+      <input type="number" pattern="\d*" maxlength="2" placeholder="00" oninput="pular(this, 3)">
+      <input type="number" pattern="\d*" maxlength="2" placeholder="00" oninput="pular(this, 4)">
+      <input type="number" pattern="\d*" maxlength="2" placeholder="00" oninput="pular(this, 5)">
     </div>
 
-    <!-- Apostas fixadas no código -->
-    <p class="sub" style="margin-top:6px">Apostas já cadastradas</p>
+    <button onclick="conferir()">Conferir Agora</button>
 
-    <button onclick="conferir()">Conferir apostas</button>
-
+    <div id="resumo" class="resumo-vitoria"></div>
     <div class="resultado" id="resultado"></div>
 
-    <footer>HTML + CSS + JS • uso mobile</footer>
+    <footer>Boa sorte! • 2024/2025</footer>
   </div>
 
   <script>
+    // Pular para o próximo input automaticamente
+    function pular(input, index) {
+        if (input.value.length >= 2) {
+            const inputs = document.querySelectorAll('#sorteio input');
+            if (inputs[index + 1]) inputs[index + 1].focus();
+        }
+    }
+
     function conferir() {
-      const sorteados = [...document.querySelectorAll('#sorteio input')]
+      const inputs = document.querySelectorAll('#sorteio input');
+      const sorteados = [...inputs]
         .map(i => i.value.padStart(2, '0'))
-        .filter(v => v);
+        .filter(v => v !== '00' && v !== '');
 
       if (sorteados.length !== 6) {
-        alert('Informe as 6 dezenas sorteadas');
+        alert('Por favor, preencha as 6 dezenas do sorteio.');
         return;
       }
 
       const apostasFixas = [
-  ['05','08','18','29','41','54'],
-  ['01','05','20','32','44','58'],
-  ['10','14','16','22','34','48'],
-  ['19','32','33','34','50','58'],
-  ['01','12','19','45','54','55'],
-  ['01','10','14','41','45','57'],
-  ['08','16','28','35','41','54'],
-  ['01','19','23','43','53','59'],
-  ['04','08','12','36','45','46'],
-  ['12','18','24','27','47','53'],
-  ['02','07','08','33','50','58'],
-  ['04','20','26','38','44','50'],
-  ['04','23','30','33','36','48'],
-  ['02','09','12','25','30','52'],
-  ['11','15','16','40','43','50'],
-  ['01','11','20','27','46','58'],
-  ['12','14','31','36','44','54'],
-  ['03','04','30','36','39','54'],
-  ['02','10','27','33','46','53'],
-  ['27','35','42','46','50','57'],
-  ['03','24','38','39','46','48'],
-  ['05','19','25','26','55','58'],
-  ['02','22','26','34','52','55'],
-  ['06','20','22','27','50','54'],
-  ['09','27','30','42','51','59'],
-  ['04','09','18','45','54','57'],
-  ['01','17','20','25','38','48'],
-  ['21','27','28','32','37','41'],
-  ['14','23','43','48','51','56'],
-  ['04','09','18','33','34','42'],
-  ['15','24','46','48','53','58'],
-  ['22','24','52','54','55','57'],
-  ['11','14','23','32','47','50'],
-  ['20','27','39','40','55','56'],
-  ['15','19','40','47','48','52'],
-  ['06','08','15','18','22','23'],
-  ['01','02','11','27','53','54'],
-  ['06','25','26','28','58','59'],
-  ['01','29','30','40','49','53'],
-  ['12','14','21','27','44','60'],
-  ['21','29','30','36','37','43'],
-  ['06','11','17','27','45','55'],
-  ['02','18','23','36','43','47'],
-  ['04','07','32','40','50','53'],
-  ['07','09','15','29','50','57'],
-  ['16','21','27','47','55','60'],
-  ['13','18','23','26','41','55'],
-  ['09','16','19','34','55','59'],
-  ['02','09','21','48','50','59'],
-  ['08','17','36','41','52','57'],
-  ['04','16','26','43','55','60'],
-  ['10','18','30','35','40','56'],
-  ['02','15','34','40','57','58'],
-  ['21','25','35','38','54','60'],
-  ['03','17','27','36','42','60'],
-  ['02','08','19','39','41','43'],
-  ['17','30','41','45','55','59'],
-  ['05','37','38','52','54','57'],
-  ['17','21','32','34','35','39'],
-  ['01','26','28','30','38','50'],
-  ['13','23','35','41','51','57'],
-  ['01','04','11','19','27','53'],
-  ['01','30','36','40','41','47'],
-  ['05','19','23','25','39','40'],
-  ['04','06','13','30','31','36'],
-  ['09','11','13','33','53','57'],
-  ['07','19','28','45','49','52'],
-  ['02','11','21','29','41','54'],
-  ['01','18','37','39','55','57'],
-  ['05','20','27','29','32','40'],
-  ['13','24','29','39','50','60'],
-  ['03','14','27','34','37','47'],
-  ['21','23','24','27','38','57'],
-  ['03','07','40','50','54','58'],
-  ['07','33','39','41','42','58'],
-  ['02','23','32','36','44','59'],
-  ['04','14','20','25','35','59'],
-  ['10','14','24','35','36','51'],
-  ['04','07','20','32','36','38'],
-  ['16','17','26','39','53','57'],
-  ['10','21','29','42','54','59'],
-  ['20','41','50','57','58','60'],
-  ['05','10','17','19','22','54'],
-  ['01','28','43','49','53','57'],
-  ['20','22','24','28','31','45'],
-  ['01','10','17','25','37','41'],
-  ['07','19','25','32','37','49'],
-  ['02','07','10','20','24','35'],
-  ['17','24','30','41','56','59'],
-  ['14','22','29','35','50','55']
-];
-
-      if (!apostasFixas.length) {
-        alert('Nenhuma aposta cadastrada no código');
-        return;
-      }
+        ['05','08','18','29','41','54'],['01','05','20','32','44','58'],['10','14','16','22','34','48'],
+        ['19','32','33','34','50','58'],['01','12','19','45','54','55'],['01','10','14','41','45','57'],
+        ['08','16','28','35','41','54'],['01','19','23','43','53','59'],['04','08','12','36','45','46'],
+        ['12','18','24','27','47','53'],['02','07','08','33','50','58'],['04','20','26','38','44','50'],
+        ['04','23','30','33','36','48'],['02','09','12','25','30','52'],['11','15','16','40','43','50'],
+        ['01','11','20','27','46','58'],['12','14','31','36','44','54'],['03','04','30','36','39','54'],
+        ['02','10','27','33','46','53'],['27','35','42','46','50','57'],['03','24','38','39','46','48'],
+        ['05','19','25','26','55','58'],['02','22','26','34','52','55'],['06','20','22','27','50','54'],
+        ['09','27','30','42','51','59'],['04','09','18','45','54','57'],['01','17','20','25','38','48'],
+        ['21','27','28','32','37','41'],['14','23','43','48','51','56'],['04','09','18','33','34','42'],
+        ['15','24','46','48','53','58'],['22','24','52','54','55','57'],['11','14','23','32','47','50'],
+        ['20','27','39','40','55','56'],['15','19','40','47','48','52'],['06','08','15','18','22','23'],
+        ['01','02','11','27','53','54'],['06','25','26','28','58','59'],['01','29','30','40','49','53'],
+        ['12','14','21','27','44','60'],['21','29','30','36','37','43'],['06','11','17','27','45','55'],
+        ['02','18','23','36','43','47'],['04','07','32','40','50','53'],['07','09','15','29','50','57'],
+        ['16','21','27','47','55','60'],['13','18','23','26','41','55'],['09','16','19','34','55','59'],
+        ['02','09','21','48','50','59'],['08','17','36','41','52','57'],['04','16','26','43','55','60'],
+        ['10','18','30','35','40','56'],['02','15','34','40','57','58'],['21','25','35','38','54','60'],
+        ['03','17','27','36','42','60'],['02','08','19','39','41','43'],['17','30','41','45','55','59'],
+        ['05','37','38','52','54','57'],['17','21','32','34','35','39'],['01','26','28','30','38','50'],
+        ['13','23','35','41','51','57'],['01','04','11','19','27','53'],['01','30','36','40','41','47'],
+        ['05','19','23','25','39','40'],['04','06','13','30','31','36'],['09','11','13','33','53','57'],
+        ['07','19','28','45','49','52'],['02','11','21','29','41','54'],['01','18','37','39','55','57'],
+        ['05','20','27','29','32','40'],['13','24','29','39','50','60'],['03','14','27','34','37','47'],
+        ['21','23','24','27','38','57'],['03','07','40','50','54','58'],['07','33','39','41','42','58'],
+        ['02','23','32','36','44','59'],['04','14','20','25','35','59'],['10','14','24','35','36','51'],
+        ['04','07','20','32','36','38'],['16','17','26','39','53','57'],['10','21','29','42','54','59'],
+        ['20','41','50','57','58','60'],['05','10','17','19','22','54'],['01','28','43','49','53','57'],
+        ['20','22','24','28','31','45'],['01','10','17','25','37','41'],['07','19','25','32','37','49'],
+        ['02','07','10','20','24','35'],['17','24','30','41','56','59'],['14','22','29','35','50','55']
+      ];
 
       let html = '';
+      let contagem = { sena: 0, quina: 0, quadra: 0 };
 
-      apostasFixas.forEach((linha, idx) => {
-        const nums = linha.split(/[ ,;-]+/).map(n => n.padStart(2,'0'));
+      apostasFixas.forEach((nums, idx) => {
         const acertos = nums.filter(n => sorteados.includes(n));
-
+        
         let classe = '';
-        let premio = '';
-        if (acertos.length === 6) { classe = 'sena'; premio = 'SENA 🎉'; }
-        else if (acertos.length === 5) { classe = 'quina'; premio = 'Quina'; }
-        else if (acertos.length === 4) { classe = 'quadra'; premio = 'Quadra'; }
+        let badge = '';
+        
+        if (acertos.length === 6) { 
+            classe = 'sena'; 
+            badge = '<span class="status-badge badge-sena">SENA</span>';
+            contagem.sena++;
+        } else if (acertos.length === 5) { 
+            classe = 'quina'; 
+            badge = '<span class="status-badge badge-quina">QUINA</span>';
+            contagem.quina++;
+        } else if (acertos.length === 4) { 
+            classe = 'quadra'; 
+            badge = '<span class="status-badge badge-quadra">QUADRA</span>';
+            contagem.quadra++;
+        }
+
+        // Criar a visualização dos números destacando os acertos
+        const linhaFormatada = nums.map(n => 
+            sorteados.includes(n) ? `<span class="acerto-num">${n}</span>` : n
+        ).join(' - ');
 
         html += `
           <div class="jogo ${classe}">
-            <div><strong>Jogo ${idx+1}:</strong> ${nums.join(' - ')}</div>
-            <div class="acertos">Acertos: ${acertos.length} ${premio}</div>
-            <div>Números certos: ${acertos.join(' - ') || 'nenhum'}</div>
+            <div><strong>Jogo ${idx + 1}</strong> ${badge}</div>
+            <div>${linhaFormatada}</div>
+            <div style="margin-top:4px; font-size:0.75rem; color:#a1a1aa">
+                Acertos: <strong>${acertos.length}</strong>
+            </div>
           </div>
         `;
       });
 
+      // Exibir resumo se houver ganhos
+      const resumoDiv = document.getElementById('resumo');
+      if (contagem.sena > 0 || contagem.quina > 0 || contagem.quadra > 0) {
+          resumoDiv.style.display = 'block';
+          resumoDiv.innerHTML = `BOA! Você fez: ${contagem.sena} Sena, ${contagem.quina} Quina e ${contagem.quadra} Quadra!`;
+      } else {
+          resumoDiv.style.display = 'none';
+      }
+
       document.getElementById('resultado').innerHTML = html;
     }
-    
   </script>
 </body>
 </html>
